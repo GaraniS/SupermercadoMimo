@@ -5,19 +5,18 @@ namespace Mimo.Models
 {
     public class Produto
     {
-        [Key]
+        [Key] // Chave primária
         public int ProdutoId { get; set; }
 
-        [Required]
-        [StringLength(100, ErrorMessage = "O nome do produto não pode exceder 100 caracteres")]
+        [Required] // Campo obrigatório
+        [StringLength(100, ErrorMessage = "O nome do produto não pode exceder 100 caracteres.")]
         public string Nome { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
+        [Required] // Campo obrigatório
+        [Column(TypeName = "decimal(18,2)")] // Define o tipo de dado no banco como decimal com 18 dígitos e 2 casas decimais
         public decimal Preco { get; set; }
 
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "A quantidade deve ser um valor positivo")]
-        public int Quantidade { get; set; }
+        // Navegação para Itens do Pedido
+        public ICollection<ItemPedido>? ItensPedido { get; set; }
     }
 }

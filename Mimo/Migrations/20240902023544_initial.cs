@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Mimo.Migrations
 {
     /// <inheritdoc />
-    public partial class inicial : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,14 +27,27 @@ namespace Mimo.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Produtos",
+                columns: table => new
+                {
+                    ProdutoId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nome = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Preco = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Produtos", x => x.ProdutoId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Pedidos",
                 columns: table => new
                 {
                     PedidoId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DataPedido = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ClienteId = table.Column<int>(type: "int", nullable: false),
-                    PrecoTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    ClienteId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,45 +61,60 @@ namespace Mimo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Produtos",
+                name: "ItemPedido",
                 columns: table => new
                 {
-                    ProdutoId = table.Column<int>(type: "int", nullable: false)
+                    ItemPedidoId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nome = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Preco = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Quantidade = table.Column<int>(type: "int", nullable: false),
-                    PedidoId = table.Column<int>(type: "int", nullable: true)
+                    PrecoTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PedidoId = table.Column<int>(type: "int", nullable: false),
+                    ProdutoId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Produtos", x => x.ProdutoId);
+                    table.PrimaryKey("PK_ItemPedido", x => x.ItemPedidoId);
                     table.ForeignKey(
-                        name: "FK_Produtos_Pedidos_PedidoId",
+                        name: "FK_ItemPedido_Pedidos_PedidoId",
                         column: x => x.PedidoId,
                         principalTable: "Pedidos",
-                        principalColumn: "PedidoId");
+                        principalColumn: "PedidoId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ItemPedido_Produtos_ProdutoId",
+                        column: x => x.ProdutoId,
+                        principalTable: "Produtos",
+                        principalColumn: "ProdutoId",
+                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemPedido_PedidoId",
+                table: "ItemPedido",
+                column: "PedidoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemPedido_ProdutoId",
+                table: "ItemPedido",
+                column: "ProdutoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Pedidos_ClienteId",
                 table: "Pedidos",
                 column: "ClienteId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Produtos_PedidoId",
-                table: "Produtos",
-                column: "PedidoId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Produtos");
+                name: "ItemPedido");
 
             migrationBuilder.DropTable(
                 name: "Pedidos");
+
+            migrationBuilder.DropTable(
+                name: "Produtos");
 
             migrationBuilder.DropTable(
                 name: "Clientes");

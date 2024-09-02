@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Mimo.Data;
@@ -44,25 +48,40 @@ namespace Mimo.Controllers
         // GET: Pedido/Create
         public IActionResult Create()
         {
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Email");
-            return View();
+            var viewModel = new PedidoViewModel
+            {
+                Clientes = _context.Clientes.ToList(),
+                Produtos = _context.Produtos.ToList()
+            };
+            return View(viewModel);
         }
 
-        // POST: Pedido/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PedidoId,DataPedido,ClienteId,PrecoTotal")] Pedido pedido)
+        public IActionResult Create(PedidoViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(pedido);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var pedido = new Pedido
+                {
+                    DataPedido = viewModel.DataPedido,
+                    ClienteId = viewModel.ClienteId,
+                    ItensPedido = viewModel.ItensPedido.Select(i => new ItemPedido
+                    {
+                        ProdutoId = i.ProdutoId,
+                        Quantidade = i.Quantidade,
+                        PrecoTotal = i.PrecoTotal
+                    }).ToList()
+                };
+
+                _context.Pedidos.Add(pedido);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
             }
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Email", pedido.ClienteId);
-            return View(pedido);
+
+            // Recarrega dados em caso de falha na validação
+            viewModel.Clientes = _context.Clientes.ToList();
+            viewModel.Produtos = _context.Produtos.ToList();
+            return View(viewModel);
         }
 
         // GET: Pedido/Edit/5
@@ -78,7 +97,7 @@ namespace Mimo.Controllers
             {
                 return NotFound();
             }
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Email", pedido.ClienteId);
+            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Nome", pedido.ClienteId);
             return View(pedido);
         }
 
@@ -87,7 +106,7 @@ namespace Mimo.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PedidoId,DataPedido,ClienteId,PrecoTotal")] Pedido pedido)
+        public async Task<IActionResult> Edit(int id, [Bind("PedidoId,DataPedido,ClienteId")] Pedido pedido)
         {
             if (id != pedido.PedidoId)
             {
@@ -114,7 +133,7 @@ namespace Mimo.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Email", pedido.ClienteId);
+            ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteId", "Nome", pedido.ClienteId);
             return View(pedido);
         }
 

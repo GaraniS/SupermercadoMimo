@@ -1,42 +1,117 @@
-﻿@model Mimo.Models.Pedido
+﻿@model PedidoViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Criar Pedido";
 }
 
-<h1>Create</h1>
+<h1>Criar Pedido</h1>
 
-<h4>Pedido</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="DataPedido" class="control-label"></label>
-                <input asp-for="DataPedido" class="form-control" />
-                <span asp-validation-for="DataPedido" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClienteId" class="control-label"></label>
-                <select asp-for="ClienteId" class ="form-control" asp-items="ViewBag.ClienteId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="PrecoTotal" class="control-label"></label>
-                <input asp-for="PrecoTotal" class="form-control" />
-                <span asp-validation-for="PrecoTotal" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="DataPedido" class="control-label"></label>
+        <input asp-for="DataPedido" class="form-control" />
+        <span asp-validation-for="DataPedido" class="text-danger"></span>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div class="form-group">
+        <label asp-for="ClienteId" class="control-label">Cliente</label>
+        <select asp-for="ClienteId" class="form-control" asp-items="@(new SelectList(Model.Clientes, "ClienteId", "Nome"))"></select>
+        <span asp-validation-for="ClienteId" class="text-danger"></span>
+    </div>
+
+    <h2>Itens do Pedido</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Preço Total</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="itemPedidoContainer">
+            @for (int i = 0; i < Model.ItensPedido.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select asp-for="@Model.ItensPedido[i].ProdutoId" name="ItensPedido[@i].ProdutoId" class="form-control" asp-items="@(new SelectList(Model.Produtos, "ProdutoId", "Nome"))"></select>
+                    </td>
+                    <td>
+                        <input asp-for="@Model.ItensPedido[i].Quantidade" name="ItensPedido[@i].Quantidade" class="form-control" onchange="calculatePrecoTotal(@i)" />
+                        <span asp-validation-for="@Model.ItensPedido[i].Quantidade" class="text-danger"></span>
+                    </td>
+                    <td>
+                        <input asp-for="@Model.ItensPedido[i].PrecoTotal" name="ItensPedido[@i].PrecoTotal" class="form-control" readonly="readonly" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="removeItem(@i)">Remover</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-primary" onclick="addItem()">Adicionar Item</button>
+
+    <div class="form-group mt-3">
+        <input type="submit" value="Criar Pedido" class="btn btn-success" />
+    </div>
+</form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function addItem() {
+            var index = $('#itemPedidoContainer tr').length;
+            var row = `
+                        <tr>
+                            <td>
+                                <select name="ItensPedido[` + index + `].ProdutoId" class="form-control">
+        @foreach (var produto in Model.Produtos)
+        {
+                                            <option value="@produto.ProdutoId">@produto.Nome</option>
+        }
+                                </select>
+                            </td>
+                            <td>
+                                <input name="ItensPedido[` + index + ].Quantidade" class="form - control" onchange="calculatePrecoTotal(+ index + `)" />
+                            </td>
+                            <td>
+                                <input name="ItensPedido[` + index + `].PrecoTotal" class="form-control" readonly="readonly" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger" onclick="removeItem(` + index + `)">Remover</button>
+                            </td>
+                        </tr>
+                    `;
+            $('#itemPedidoContainer').append(row);
+        }
+
+        function removeItem(index) {
+            $('#itemPedidoContainer tr').eq(index).remove();
+            updateItemIndices();
+        }
+
+        function updateItemIndices() {
+            $('#itemPedidoContainer tr').each(function (i) {
+                $(this).find('input, select').each(function () {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        $(this).attr('name', name.replace(/\[\d+\]/, '[' + i + ']'));
+                    }
+                });
+            });
+        }
+
+        function calculatePrecoTotal(index) {
+            var quantidade = $('input[name="ItensPedido[' + index + '].Quantidade"]').val();
+            var produtoId = $('select[name="ItensPedido[' + index + '].ProdutoId"]').val();
+            var preco = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Produtos.ToDictionary(p => p.ProdutoId, p => p.Preco)));
+
+            if (produtoId && quantidade) {
+                var precoTotal = preco[produtoId] * quantidade;
+                $('input[name="ItensPedido[' + index + '].PrecoTotal"]').val(precoTotal.toFixed(2));
+            }
+        }
+    </script>
 }

@@ -16,14 +16,27 @@ namespace Mimo.Data
         {
             // Configuração do relacionamento 1:N entre Cliente e Pedido
             modelBuilder.Entity<Pedido>()
-               .HasOne(p => p.Cliente)
-               .WithMany(c => c.Pedidos)
-               .HasForeignKey(p => p.ClienteId);
+                .HasOne(p => p.Cliente)
+                .WithMany(c => c.Pedidos)
+                .HasForeignKey(p => p.ClienteId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Pedido>()
-                .HasMany(p => p.Produtos);
+            // Configuração do relacionamento 1:N entre Pedido e ItemPedido
+            modelBuilder.Entity<ItemPedido>()
+                .HasOne(i => i.Pedido)
+                .WithMany(p => p.ItensPedido)
+                .HasForeignKey(i => i.PedidoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configuração do relacionamento 1:N entre Produto e ItemPedido
+            modelBuilder.Entity<ItemPedido>()
+                .HasOne(i => i.Produto)
+                .WithMany(p => p.ItensPedido)
+                .HasForeignKey(i => i.ProdutoId)
+                .OnDelete(DeleteBehavior.Restrict); // Opcionalmente, pode usar DeleteBehavior.Cascade
 
             base.OnModelCreating(modelBuilder);
         }
+        public DbSet<Mimo.Models.ItemPedido> ItemPedido { get; set; } = default!;
     }
 }

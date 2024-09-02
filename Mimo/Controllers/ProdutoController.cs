@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Mimo.Data;
 using Mimo.Models;
@@ -49,7 +54,7 @@ namespace Mimo.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProdutoId,Nome,Preco,Quantidade")] Produto produto)
+        public async Task<IActionResult> Create([Bind("ProdutoId,Nome,Preco")] Produto produto)
         {
             if (ModelState.IsValid)
             {
@@ -81,7 +86,7 @@ namespace Mimo.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProdutoId,Nome,Preco,Quantidade")] Produto produto)
+        public async Task<IActionResult> Edit(int id, [Bind("ProdutoId,Nome,Preco")] Produto produto)
         {
             if (id != produto.ProdutoId)
             {

@@ -5,20 +5,20 @@ namespace Mimo.Models
 {
     public class Pedido
     {
-        [Key]
+        [Key] // Chave primária
         public int PedidoId { get; set; }
-        [Required]
+
+        [Required] // Campo obrigatório
         public DateTime DataPedido { get; set; }
 
-        [Required]
-        [ForeignKey("Cliente")]
+        [ForeignKey("Cliente")] // Define a chave estrangeira para a entidade Cliente
+        [Required] // Campo obrigatório
         public int ClienteId { get; set; }
+
+        // Propriedade de navegação para Cliente
         public Cliente? Cliente { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal PrecoTotal { get; set; }
-
-        public ICollection<Produto>? Produtos { get; set; }
+        // Navegação para Itens do Pedido
+        public ICollection<ItemPedido>? ItensPedido { get; set; }
     }
 }
